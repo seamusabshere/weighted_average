@@ -10,7 +10,9 @@ begin
     gem.email = "seamus@abshere.net"
     gem.homepage = "http://github.com/seamusabshere/weighted_average"
     gem.authors = ["Seamus Abshere"]
-    gem.add_development_dependency "thoughtbot-shoulda", ">= 0"
+    gem.add_dependency 'activerecord', '>=2.3.4'
+    gem.add_dependency 'activesupport', '>=2.3.4'
+    gem.add_development_dependency "shoulda", ">= 2.10.3"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
   Jeweler::GemcutterTasks.new
