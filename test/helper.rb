@@ -20,7 +20,7 @@ end
 
 ActiveRecord::Base.establish_connection(
   'adapter' => 'mysql',
-  'database' => 'data_miner_test',
+  'database' => 'weighted_average_test',
   'username' => 'root',
   'password' => ''
 )
@@ -37,6 +37,7 @@ end
 
 ActiveRecord::Schema.define(:version => 20090819143429) do
   create_table "segments", :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
+    t.integer  "aircraft_id" # should this be here?
     t.integer  "departures_performed"
     t.integer  "payload"
     t.integer  "seats"
