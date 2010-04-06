@@ -1,7 +1,17 @@
+require 'active_support'
 require 'active_record'
 
 module ActiveRecord
   module WeightedAverage
+    def weighted_average(attr_name, options = {})
+      attr_name = attr_name.to_s
+      weighted_by = (options[:weighted_by] || 'weighting').to_s
+      aasc = Table table_name
+      where("#{aasc[attr_name].to_sql} IS NOT NULL").project("(SUM(#{aasc[attr_name].to_sql} * #{aasc[weighted_by].to_sql}) / SUM(#{aasc[weighted_by].to_sql})) AS weighted_average")
+    end
+  end
+  
+  module XWeightedAverage
     def self.included(base)
       base.extend(ClassMethods)
     end
@@ -126,5 +136,5 @@ module ActiveRecord
 end
 
 ActiveRecord::Base.class_eval do
-  include ActiveRecord::WeightedAverage
+  extend ActiveRecord::WeightedAverage
 end
