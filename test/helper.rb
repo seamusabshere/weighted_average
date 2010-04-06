@@ -1,12 +1,21 @@
 require 'rubygems'
 require 'test/unit'
 require 'shoulda'
+require 'ruby-debug'
+require 'logger'
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'weighted_average'
 
 class Test::Unit::TestCase
+end
+
+$logger = Logger.new STDOUT #'test/test.log'
+
+ActiveSupport::Notifications.subscribe do |*args|
+  event = ActiveSupport::Notifications::Event.new(*args)
+  $logger.debug "#{event.payload[:name]} (#{event.duration}) #{event.payload[:sql]}"
 end
 
 ActiveRecord::Base.establish_connection(
