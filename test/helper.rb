@@ -99,6 +99,31 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
   end
   execute 'ALTER TABLE segments ADD PRIMARY KEY (row_hash);'
   
+  create_table "aircraft", :force => true do |t|
+    t.string   "name"
+    t.integer  "seats"
+    t.integer  "fuel_type_id"
+    t.float    "endpoint_fuel"
+    t.integer  "manufacturer_id"
+    t.datetime "updated_at"
+    t.datetime "created_at"
+    t.date     "bts_begin_date"
+    t.date     "bts_end_date"
+    t.float    "load_factor"
+    t.float    "freight_share"
+    t.float    "m3"
+    t.float    "m2"
+    t.float    "m1"
+    t.float    "distance"
+    t.float    "payload"
+    t.integer  "aircraft_class_id"
+    t.float    "multiplier"
+    t.string   "manufacturer_name"
+    t.string   "brighter_planet_aircraft_class_code"
+    t.integer  "weighting"
+    t.integer  "bts_aircraft_type"
+  end
+  
   create_table "aircraft_classes", :force => true do |t|
     t.string  "name"
     t.integer "seats"
