@@ -2,6 +2,10 @@
 
 Description goes here.
 
+= Rails 3 only
+
+We use ARel so we need Rails 3. Please let me know if you want Rails 2, because I an (ungemified) version of that.
+
 == Note on Patches/Pull Requests
  
 * Fork the project.
@@ -14,4 +18,4 @@ Description goes here.
 
 == Copyright
 
-Copyright (c) 2010 Seamus Abshere. See LICENSE for details.
+Copyright (c) 2010 Seamus Abshere, Andy Rossmeissl, Ian Hough, and Matt Kling. See LICENSE for details.

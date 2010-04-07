@@ -9,7 +9,7 @@ begin
     gem.description = %Q{TODO: longer description of your gem}
     gem.email = "seamus@abshere.net"
     gem.homepage = "http://github.com/seamusabshere/weighted_average"
-    gem.authors = ["Seamus Abshere"]
+    gem.authors = ["Seamus Abshere", "Andy Rossmeissl", "Ian Hough", "Matt Kling"]
     gem.add_dependency 'activerecord', '>=3.0.0.beta2'
     gem.add_dependency 'activesupport', '>=3.0.0.beta2'
     gem.add_dependency 'arel', '>=0.3.3'
