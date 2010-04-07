@@ -9,12 +9,12 @@ module ActiveRecord
     end
     
     # Returns the ARel relation
-    def weighted_average_relation(column_name, options = {})
+    def weighted_average_relation(column_names, options = {})
       raise ArgumentError, "Only use array form if the weighting column in the foreign table is not called 'weighting'" if options[:weighted_by].is_a?(Array) and options[:weighted_by].length != 2
       raise ArgumentError, "No nil values in weighted_by, please" if Array.wrap(options[:weighted_by]).any?(&:nil?)
       
-      # aircraft['seats']
-      column = arel_table[column_name.to_s]
+      # aircraft['seats'] or (aircraft['seats'] + aircraft['payload'])
+      columns = Array.wrap(column_names).map { |column_name| arel_table[column_name.to_s] }
 
       # :airline_aircraft_seat_class
       association = if options[:weighted_by].present?
@@ -60,7 +60,10 @@ module ActiveRecord
         foreign_arel_table = foreign_arel_table.project('12345')
       end
 
-      relation = where("#{column.to_sql} IS NOT NULL").project("(SUM(#{column.to_sql} #{"/ #{disaggregate_by.to_sql} " if disaggregate_by}* #{weighted_by.to_sql}) / SUM(#{weighted_by.to_sql})) AS weighted_average")
+      relation = select("(SUM((#{columns.map { |column| column.to_sql }.join(' + ')}) #{"/ #{disaggregate_by.to_sql} " if disaggregate_by}* #{weighted_by.to_sql}) / SUM(#{weighted_by.to_sql})) AS weighted_average")
+      columns.each do |column|
+        relation = relation.where("#{column.to_sql} IS NOT NULL")
+      end
       relation = relation.outer_join(foreign_arel_table).on(join_on) if foreign_arel_table
       relation
     end
