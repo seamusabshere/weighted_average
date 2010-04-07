@@ -5,8 +5,8 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "weighted_average"
-    gem.summary = %Q{TODO: one-line summary of your gem}
-    gem.description = %Q{TODO: longer description of your gem}
+    gem.summary = %Q{Perform weighted averages. Rails 3 only.}
+    gem.description = %Q{Perform weighted averages, even across associations. Rails 3 only because it uses ARel.}
     gem.email = "seamus@abshere.net"
     gem.homepage = "http://github.com/seamusabshere/weighted_average"
     gem.authors = ["Seamus Abshere", "Andy Rossmeissl", "Ian Hough", "Matt Kling"]
