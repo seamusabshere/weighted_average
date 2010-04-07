@@ -145,14 +145,14 @@ class TestWeightedAverage < Test::Unit::TestCase
     )
   end
 
-  # cohorts
+  # cohorts (requires the cohort_scope gem)
 
-  # should "do custom weighting, cohort" do
-  #   should_have_same_sql(
-  #     Segment.cohort(:payload => 5).construct_weighted_average_sql(:load_factor, :by => :passengers),
-  #     "SELECT (SUM(`segments`.load_factor * `segments`.passengers) / SUM(`segments`.passengers)) AS weighted_average FROM `segments` WHERE ((`segments`.load_factor IS NOT NULL)) AND (`segments`.`payload` = 5) "
-  #   )
-  # end
+  should "do custom weighting, with a cohort" do
+    should_have_same_sql(
+      "SELECT (SUM(`segments`.`load_factor` * `segments`.`passengers`) / SUM(`segments`.`passengers`)) AS weighted_average FROM `segments` WHERE (`segments`.`payload` = 5) AND (`segments`.`load_factor` IS NOT NULL)",
+      Segment.big_cohort(:payload => 5).weighted_average_relation(:load_factor, :weighted_by => :passengers)
+    )
+  end
 
   private
 

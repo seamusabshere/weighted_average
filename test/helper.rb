@@ -3,6 +3,7 @@ require 'test/unit'
 require 'shoulda'
 require 'ruby-debug'
 require 'logger'
+require 'cohort_scope'
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
@@ -178,7 +179,21 @@ end
 
 class Segment < ActiveRecord::Base
   set_primary_key :row_hash
+  validates_presence_of :row_hash
+  extend CohortScope
+  self.minimum_cohort_size = 1
 end
+
+(1..10).each do |i|
+  a = Segment.new
+  a.payload = i
+  a.row_hash = ActiveSupport::SecureRandom.hex(10)
+  a.save!
+end
+
+# Segment.create! :payload => 4, :row_hash => '19290oaijsoidjvlaioshdiluas'
+# Segment.create! :payload => 5, :row_hash => 'sojsdlviuahsdlvahliruhvailsuf'
+# Segment.create! :payload => 6, :row_hash => 'dsiauhiluashdliufhalsidfhuailsd'
 
 class AirlineAircraftSeatClass < ActiveRecord::Base
   # include CohortScope
