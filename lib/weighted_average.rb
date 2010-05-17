@@ -30,7 +30,8 @@ module ActiveRecord
       # set up join ON
       join_on = if association_class
         raise ArgumentError, "#{association.primary_key_name} isn't a column in the #{association_class.table_name} table" unless association_class.column_names.include?(association.primary_key_name)
-        foreign_arel_table[association.primary_key_name].eq arel_table[primary_key]
+        join_key = association.options[:primary_key].present? ? association.options[:primary_key] : primary_key
+        foreign_arel_table[association.primary_key_name].eq arel_table[join_key]
       end
       
       # 'weighting'

@@ -109,6 +109,13 @@ class TestWeightedAverage < Test::Unit::TestCase
     )
   end
   
+  should "do foreign custom weighting with custom join keys" do
+    should_have_same_sql(
+      "SELECT (SUM((`aircraft_deux`.`m3`) * `segments`.`passengers`) / SUM(`segments`.`passengers`)) AS weighted_average, 12345 FROM `aircraft_deux` LEFT OUTER JOIN `segments` ON `segments`.`bts_aircraft_type` = `aircraft_deux`.`my_bts_aircraft_type_code` WHERE (`aircraft_deux`.`m3` IS NOT NULL)",
+      AircraftDeux.weighted_average_relation(:m3, :weighted_by => [:segments, :passengers])
+    )
+  end
+  
   # scoped
   
   should "do default weighting, scoped" do
