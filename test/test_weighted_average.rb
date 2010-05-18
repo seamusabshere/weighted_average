@@ -95,23 +95,23 @@ class TestWeightedAverage < Test::Unit::TestCase
   # fake! we would never calc seats this way
   should "do foreign default weighting" do
     should_have_same_sql(
-      "SELECT (SUM((`aircraft`.`seats`) * `airline_aircraft_seat_classes`.`weighting`) / SUM(`airline_aircraft_seat_classes`.`weighting`)) AS weighted_average, 12345 FROM `aircraft` LEFT OUTER JOIN `airline_aircraft_seat_classes` ON `airline_aircraft_seat_classes`.`aircraft_id` = `aircraft`.`id` WHERE (`aircraft`.`seats` IS NOT NULL)",
+      "SELECT (SUM((`aircraft`.`seats`) * `airline_aircraft_seat_classes`.`weighting`) / SUM(`airline_aircraft_seat_classes`.`weighting`)) AS weighted_average FROM `aircraft` INNER JOIN `airline_aircraft_seat_classes` ON `airline_aircraft_seat_classes`.`aircraft_id` = `aircraft`.`id` WHERE (`aircraft`.`seats` IS NOT NULL)",
       Aircraft.weighted_average_relation('seats', :weighted_by => :airline_aircraft_seat_classes)
     )
   end
-  
+    
   # Aircraft#m3 fallback value
   # a subquery used in Aircraft.update_all_m3s
   should "do foreign custom weighting" do
     should_have_same_sql(
-      "SELECT (SUM((`aircraft`.`m3`) * `segments`.`passengers`) / SUM(`segments`.`passengers`)) AS weighted_average, 12345 FROM `aircraft` LEFT OUTER JOIN `segments` ON `segments`.`aircraft_id` = `aircraft`.`id` WHERE (`aircraft`.`m3` IS NOT NULL)",
+      "SELECT (SUM((`aircraft`.`m3`) * `segments`.`passengers`) / SUM(`segments`.`passengers`)) AS weighted_average FROM `aircraft` INNER JOIN `segments` ON `segments`.`bts_aircraft_type` = `aircraft`.`bts_aircraft_type` WHERE (`aircraft`.`m3` IS NOT NULL)",
       Aircraft.weighted_average_relation(:m3, :weighted_by => [:segments, :passengers])
     )
   end
   
   should "do foreign custom weighting with custom join keys" do
     should_have_same_sql(
-      "SELECT (SUM((`aircraft_deux`.`m3`) * `segments`.`passengers`) / SUM(`segments`.`passengers`)) AS weighted_average, 12345 FROM `aircraft_deux` LEFT OUTER JOIN `segments` ON `segments`.`bts_aircraft_type` = `aircraft_deux`.`my_bts_aircraft_type_code` WHERE (`aircraft_deux`.`m3` IS NOT NULL)",
+      "SELECT (SUM((`aircraft_deux`.`m3`) * `segments`.`passengers`) / SUM(`segments`.`passengers`)) AS weighted_average FROM `aircraft_deux` INNER JOIN `segments` ON `segments`.`bts_aircraft_type` = `aircraft_deux`.`my_bts_aircraft_type_code` WHERE (`aircraft_deux`.`m3` IS NOT NULL)",
       AircraftDeux.weighted_average_relation(:m3, :weighted_by => [:segments, :passengers])
     )
   end
@@ -139,7 +139,7 @@ class TestWeightedAverage < Test::Unit::TestCase
   should "do foreign default weighting, scoped" do
     conditions = '454 != 999'
     should_have_same_sql(
-      "SELECT (SUM((`aircraft`.`seats`) * `airline_aircraft_seat_classes`.`weighting`) / SUM(`airline_aircraft_seat_classes`.`weighting`)) AS weighted_average, 12345 FROM `aircraft` LEFT OUTER JOIN `airline_aircraft_seat_classes` ON `airline_aircraft_seat_classes`.`aircraft_id` = `aircraft`.`id` WHERE (#{conditions}) AND (`aircraft`.`seats` IS NOT NULL)",
+      "SELECT (SUM((`aircraft`.`seats`) * `airline_aircraft_seat_classes`.`weighting`) / SUM(`airline_aircraft_seat_classes`.`weighting`)) AS weighted_average FROM `aircraft` INNER JOIN `airline_aircraft_seat_classes` ON `airline_aircraft_seat_classes`.`aircraft_id` = `aircraft`.`id` WHERE (454 != 999) AND (`aircraft`.`seats` IS NOT NULL)",
       Aircraft.scoped(:conditions => conditions).weighted_average_relation(:seats, :weighted_by => :airline_aircraft_seat_classes)
     )
   end
@@ -147,7 +147,7 @@ class TestWeightedAverage < Test::Unit::TestCase
   should "do foreign custom weighting, scoped" do
     conditions = '`aircraft`.`m3` > 1'
     should_have_same_sql(
-      "SELECT (SUM((`aircraft`.`m3`) * `segments`.`passengers`) / SUM(`segments`.`passengers`)) AS weighted_average, 12345 FROM `aircraft` LEFT OUTER JOIN `segments` ON `segments`.`aircraft_id` = `aircraft`.`id` WHERE (#{conditions}) AND (`aircraft`.`m3` IS NOT NULL)",
+      "SELECT (SUM((`aircraft`.`m3`) * `segments`.`passengers`) / SUM(`segments`.`passengers`)) AS weighted_average FROM `aircraft` INNER JOIN `segments` ON `segments`.`bts_aircraft_type` = `aircraft`.`bts_aircraft_type` WHERE (`aircraft`.`m3` > 1) AND (`aircraft`.`m3` IS NOT NULL)",
       Aircraft.scoped(:conditions => conditions).weighted_average_relation(:m3, :weighted_by => [:segments, :passengers])
     )
   end
@@ -160,6 +160,20 @@ class TestWeightedAverage < Test::Unit::TestCase
       Segment.weighted_average_relation(:load_factor, :weighted_by => :passengers, :disaggregate_by => :departures_performed)
     )
   end
+  
+  # more complicated stuff
+  
+  should "construct weightings across has_many through associations (that can be used for updating all)" do
+    aircraft_class = AircraftClass.arel_table
+    aircraft = Aircraft.arel_table
+    segment = Segment.arel_table
+    
+    should_have_same_sql(
+      "SELECT (SUM((`segments`.`seats`) * `segments`.`passengers`) / SUM(`segments`.`passengers`)) AS weighted_average FROM `segments` INNER JOIN `aircraft` ON `aircraft`.`bts_aircraft_type` = `segments`.`bts_aircraft_type` INNER JOIN `aircraft_classes` ON `aircraft_classes`.`id` = `aircraft`.`aircraft_class_id` WHERE (`segments`.`seats` IS NOT NULL) AND (`aircraft`.`aircraft_class_id` = `aircraft_classes`.`id`)",
+      Segment.joins(:aircraft => :aircraft_class).weighted_average_relation(:seats, :weighted_by => :passengers).where(aircraft[:aircraft_class_id].eq(aircraft_class[:id]))
+    )
+  end
+  
 
   # cohorts (requires the cohort_scope gem)
 

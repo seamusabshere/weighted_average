@@ -13,6 +13,7 @@ class Test::Unit::TestCase
 end
 
 $logger = Logger.new STDOUT #'test/test.log'
+$logger.level = Logger::INFO
 
 ActiveSupport::Notifications.subscribe do |*args|
   event = ActiveSupport::Notifications::Event.new(*args)
@@ -209,6 +210,8 @@ class Segment < ActiveRecord::Base
   validates_presence_of :row_hash
   extend CohortScope
   self.minimum_cohort_size = 1
+  belongs_to :aircraft, :foreign_key => 'bts_aircraft_type', :primary_key => 'bts_aircraft_type'
+  has_one :aircraft_class, :through => :aircraft
 end
 
 (1..10).each do |i|
@@ -223,30 +226,23 @@ end
 # Segment.create! :payload => 6, :row_hash => 'dsiauhiluashdliufhalsidfhuailsd'
 
 class AirlineAircraftSeatClass < ActiveRecord::Base
-  # include CohortScope
-
-  # belongs_to :airline, :class_name => 'Airline', :foreign_key => 'airline_id'
-  belongs_to :aircraft, :class_name => 'Aircraft', :foreign_key => 'aircraft_id'
-  # belongs_to :seat_class, :class_name => 'SeatClass', :foreign_key => 'seat_class_id'
-  has_one :aircraft_class, :class_name => 'AircraftClass', :through => :aircraft
+  belongs_to :aircraft
+  has_one :aircraft_class, :through => :aircraft
 end
 
 
 class Aircraft < ActiveRecord::Base
-  belongs_to :aircraft_class, :class_name => 'AircraftClass', :foreign_key => 'aircraft_class_id'
-  # belongs_to :manufacturer, :class_name => 'Manufacturer', :foreign_key => 'manufacturer_id'
-  # has_many :airline_aircraft, :class_name => 'AirlineAircraft'
-  # has_many :seat_classes, :class_name => 'AircraftSeatClass'
-  has_many :segments, :class_name => "Segment"
-  has_many :airline_aircraft_seat_classes, :class_name => 'AirlineAircraftSeatClass'
+  has_many :segments, :foreign_key => 'bts_aircraft_type', :primary_key => 'bts_aircraft_type'
+  belongs_to :aircraft_class
+  has_many :airline_aircraft_seat_classes
 end
 
 class AircraftClass < ActiveRecord::Base
-  has_many :aircraft, :class_name => 'Aircraft'
+  has_many :aircraft
   has_many :airline_aircraft_seat_classes, :through => :aircraft
 end
 
 class AircraftDeux < ActiveRecord::Base
   set_primary_key 'icao_code'
-  has_many :segments, :class_name => "Segment", :primary_key => 'my_bts_aircraft_type_code', :foreign_key => 'bts_aircraft_type'
+  has_many :segments, :primary_key => 'my_bts_aircraft_type_code', :foreign_key => 'bts_aircraft_type'
 end
