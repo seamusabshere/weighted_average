@@ -1,20 +1,29 @@
 = weighted_average
 
-Description goes here.
+Do weighted averages in ActiveRecord.
 
-= Rails 3 only
+== Rationale
 
-We use ARel so we need Rails 3. Please let me know if you want Rails 2, because I an (ungemified) version of that.
+You have a bunch of flight records with passenger count and distance.
 
-== Note on Patches/Pull Requests
- 
-* Fork the project.
-* Make your feature addition or bug fix.
-* Add tests for it. This is important so I don't break it in a
-  future version unintentionally.
-* Commit, do not mess with rakefile, version, or history.
-  (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
-* Send me a pull request. Bonus points for topic branches.
+* Flight EWR <-> MSN; 30,000 passengers last month; 500 miles
+* Flight EWR <-> BOM; 15 passengers last month; 10,000 miles
+
+The average distance is <tt>(10_000 + 500) / 2 = 5250</tt>.
+
+The average distance weighted by passenger count is <tt>(30_000 * 500 + 15 * 10_000) / (10_500) = 1442</tt>.
+
+== Usage
+
+Using <tt>FlightSegment</tt> from {Brighter Planet's}[http://brighterplanet.com] {earth gem}[http://rubygems.org/gems/earth]:
+
+    >> FlightSegment.weighted_average(:distance, :weighted_by => :passengers)
+    => 2436.1959
+
+You can also see the SQL that is generated:
+
+    >> FlightSegment.weighted_average_relation(:distance, :weighted_by => :passengers).to_sql
+    => "SELECT (SUM((`flight_segments`.`distance`) * `flight_segments`.`passengers`) / SUM(`flight_segments`.`passengers`)) AS weighted_average FROM `flight_segments` WHERE (`flight_segments`.`distance` IS NOT NULL)"
 
 == Copyright
 

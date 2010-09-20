@@ -1,19 +1,12 @@
 require 'active_record'
-require 'active_support'
-require 'active_support/version'
-%w{
-  active_support/core_ext/module
-}.each do |active_support_3_requirement|
-  require active_support_3_requirement
-end if ActiveSupport::VERSION::MAJOR == 3
 
 module WeightedAverage
-  # Returns a number
+  # Returns a number.
   def weighted_average(*args)
     connection.select_value(weighted_average_relation(*args).to_sql, 'weighted_average').to_f
   end
 
-  # Returns the ARel relation
+  # Returns the ARel relation for a weighted average query.
   def weighted_average_relation(column_names, options = {})
     raise ArgumentError, "Only use array form if the weighting column in the foreign table is not called 'weighting'" if options[:weighted_by].is_a?(Array) and options[:weighted_by].length != 2
     raise ArgumentError, "No nil values in weighted_by, please" if Array.wrap(options[:weighted_by]).any?(&:nil?)
@@ -64,11 +57,22 @@ module WeightedAverage
 end
 
 ActiveRecord::Associations::AssociationCollection.class_eval do
-  delegate :weighted_average, :weighted_average_relation, :to => :scoped
-end
-ActiveRecord::Base.class_eval do
-  class << self
-    delegate :weighted_average, :weighted_average_relation, :to => :scoped
+  def self.weighted_average(*args) # :nodoc:
+    scoped.weighted_average(*args)
+  end
+  
+  def self.weighted_average_relation(*args) # :nodoc:
+    scoped.weighted_average_relation(*args)
   end
 end
+ActiveRecord::Base.class_eval do
+  def self.weighted_average(*args) # :nodoc:
+    scoped.weighted_average(*args)
+  end
+  
+  def self.weighted_average_relation(*args) # :nodoc:
+    scoped.weighted_average_relation(*args)
+  end
+end
+
 ActiveRecord::Relation.send :include, WeightedAverage
