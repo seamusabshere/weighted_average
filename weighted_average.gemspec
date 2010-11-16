@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{weighted_average}
-  s.version = "0.0.5"
+  s.version = "0.0.6"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Seamus Abshere", "Andy Rossmeissl", "Ian Hough", "Matt Kling"]
-  s.date = %q{2010-09-20}
+  s.date = %q{2010-11-16}
   s.description = %q{Perform weighted averages, even across associations. Rails 3 only because it uses ARel.}
   s.email = %q{seamus@abshere.net}
   s.extra_rdoc_files = [
@@ -25,7 +25,8 @@ Gem::Specification.new do |s|
      "VERSION",
      "lib/weighted_average.rb",
      "test/helper.rb",
-     "test/test_weighted_average.rb"
+     "test/test_weighted_average.rb",
+     "weighted_average.gemspec"
   ]
   s.homepage = %q{http://github.com/seamusabshere/weighted_average}
   s.rdoc_options = ["--charset=UTF-8"]
@@ -42,19 +43,19 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<activerecord>, [">= 3.0.0.beta2"])
-      s.add_runtime_dependency(%q<arel>, [">= 0.3.3"])
+      s.add_runtime_dependency(%q<activerecord>, ["~> 3"])
+      s.add_runtime_dependency(%q<arel>, ["~> 2"])
       s.add_development_dependency(%q<cohort_scope>, [">= 0.0.2"])
       s.add_development_dependency(%q<shoulda>, [">= 2.10.3"])
     else
-      s.add_dependency(%q<activerecord>, [">= 3.0.0.beta2"])
-      s.add_dependency(%q<arel>, [">= 0.3.3"])
+      s.add_dependency(%q<activerecord>, ["~> 3"])
+      s.add_dependency(%q<arel>, ["~> 2"])
       s.add_dependency(%q<cohort_scope>, [">= 0.0.2"])
       s.add_dependency(%q<shoulda>, [">= 2.10.3"])
     end
   else
-    s.add_dependency(%q<activerecord>, [">= 3.0.0.beta2"])
-    s.add_dependency(%q<arel>, [">= 0.3.3"])
+    s.add_dependency(%q<activerecord>, ["~> 3"])
+    s.add_dependency(%q<arel>, ["~> 2"])
     s.add_dependency(%q<cohort_scope>, [">= 0.0.2"])
     s.add_dependency(%q<shoulda>, [">= 2.10.3"])
   end
