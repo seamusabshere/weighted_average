@@ -1,7 +1,9 @@
 require 'rubygems'
 require 'test/unit'
 require 'shoulda'
-require 'ruby-debug'
+unless RUBY_VERSION >= '1.9'
+  require 'ruby-debug'
+end
 require 'logger'
 require 'cohort_scope'
 
