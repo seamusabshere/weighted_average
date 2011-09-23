@@ -22,12 +22,25 @@ ActiveSupport::Notifications.subscribe do |*args|
   $logger.debug "#{event.payload[:name]} (#{event.duration}) #{event.payload[:sql]}"
 end
 
-ActiveRecord::Base.establish_connection(
-  'adapter' => 'mysql',
-  'database' => 'weighted_average_test',
-  'username' => 'root',
-  'password' => 'password'
-)
+config = {
+  :host => '127.0.0.1',
+  :database => 'test_weighted_average'
+}
+
+extra = if ENV['WEIGHTED_AVERAGE_TEST_ADAPTER'] == 'postgresql'
+  {
+    :adapter => 'postgresql',
+    :username => `whoami`.chomp,
+  }
+else
+  {
+    :adapter => 'mysql',
+    :username => 'root',
+    :password => 'password'
+  }
+end
+
+ActiveRecord::Base.establish_connection config.merge(extra)
 
 ActiveSupport::Inflector.inflections do |inflect|
   inflect.uncountable %w{aircraft airline_aircraft aircraft_deux AircraftDeux}
@@ -40,7 +53,7 @@ ActiveSupport::Inflector.inflections do |inflect|
 end
 
 ActiveRecord::Schema.define(:version => 20090819143429) do
-  create_table "segments", :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
+  create_table "segments", :force => true, :id => false do |t|
     t.integer  "aircraft_id" # should this be here?
     t.integer  "departures_performed"
     t.integer  "payload"

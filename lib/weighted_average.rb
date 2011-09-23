@@ -52,6 +52,11 @@ module WeightedAverage
     data_column_names.each do |data_column_name|
       relation = relation.where("#{data_column_name} IS NOT NULL")
     end
+
+    # avoid division by zero
+    relation = relation.where("#{weighted_by_column_name} > 0")
+    relation = relation.where("#{disaggregate_by_column_name} > 0") if disaggregate_by_column_name
+    
     # FIXME this will break on through relationships, where it has to be :aircraft => :aircraft_class
     relation = relation.joins(association.name) if association_class
     relation
