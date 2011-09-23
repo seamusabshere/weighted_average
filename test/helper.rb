@@ -1,18 +1,18 @@
-require 'rubygems'
-require 'test/unit'
-require 'shoulda'
-unless RUBY_VERSION >= '1.9'
-  require 'ruby-debug'
-end
-require 'logger'
+require 'bundler/setup'
+require 'minitest/spec'
+require 'minitest/autorun'
 require 'cohort_scope'
 
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'weighted_average'
 
-class Test::Unit::TestCase
+class MiniTest::Unit::TestCase
 end
+
+# require 'logger'
+# ActiveRecord::Base.logger = Logger.new($stderr)
+# ActiveRecord::Base.logger.level = Logger::DEBUG
 
 $logger = Logger.new STDOUT #'test/test.log'
 $logger.level = Logger::INFO
@@ -219,7 +219,7 @@ end
 (1..10).each do |i|
   a = Segment.new
   a.payload = i
-  a.row_hash = ActiveSupport::SecureRandom.hex(10)
+  a.row_hash = SecureRandom.hex(10)
   a.save!
 end
 

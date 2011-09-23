@@ -1,4 +1,6 @@
+require 'active_support/core_ext'
 require 'active_record'
+require "weighted_average/version"
 
 module WeightedAverage
   # Returns a number.
@@ -8,12 +10,12 @@ module WeightedAverage
 
   # Returns the ARel relation for a weighted average query.
   def weighted_average_relation(data_column_names, options = {})
-    raise ArgumentError, "Only use array form if the weighting column in the foreign table is not called 'weighting'" if options[:weighted_by].is_a?(Array) and options[:weighted_by].length != 2
-    raise ArgumentError, "No nil values in weighted_by, please" if Array.wrap(options[:weighted_by]).any?(&:nil?)
+    raise ::ArgumentError, "Only use array form if the weighting column in the foreign table is not called 'weighting'" if options[:weighted_by].is_a?(::Array) and options[:weighted_by].length != 2
+    raise ::ArgumentError, "No nil values in weighted_by, please" if ::Array.wrap(options[:weighted_by]).any?(&:nil?)
   
     # :airline_aircraft_seat_class
     association = if options[:weighted_by].present?
-      options[:weighted_by].is_a?(Array) ? reflect_on_association(options[:weighted_by].first.to_sym) : reflect_on_association(options[:weighted_by].to_sym)
+      options[:weighted_by].is_a?(::Array) ? reflect_on_association(options[:weighted_by].first.to_sym) : reflect_on_association(options[:weighted_by].to_sym)
     end
   
     # AirlineAircraftSeatClass
@@ -27,9 +29,9 @@ module WeightedAverage
     end
       
     # `airline_aircraft_seat_classes`.`weighting`
-    weighted_by_column_name = if association_class and options[:weighted_by].is_a?(Array)
+    weighted_by_column_name = if association_class and options[:weighted_by].is_a?(::Array)
       options[:weighted_by].last.to_s
-    elsif !association_class and (options[:weighted_by].is_a?(String) or options[:weighted_by].is_a?(Symbol))
+    elsif !association_class and (options[:weighted_by].is_a?(::String) or options[:weighted_by].is_a?(::Symbol))
       options[:weighted_by].to_s
     else
       'weighting'
@@ -42,7 +44,7 @@ module WeightedAverage
     end
 
     # [ `aircraft`.`foo`, `aircraft`.`baz` ]
-    data_column_names = Array.wrap(data_column_names).map do |data_column_name|
+    data_column_names = ::Array.wrap(data_column_names).map do |data_column_name|
       [ quoted_table_name, connection.quote_column_name(data_column_name) ].join '.'
     end
 
@@ -56,7 +58,7 @@ module WeightedAverage
   end
 end
 
-ActiveRecord::Associations::AssociationCollection.class_eval do
+(defined?(::ActiveRecord::Associations::CollectionProxy) ? ::ActiveRecord::Associations::CollectionProxy : ::ActiveRecord::Associations::AssociationCollection).class_eval do
   def self.weighted_average(*args) # :nodoc:
     scoped.weighted_average(*args)
   end
@@ -65,7 +67,7 @@ ActiveRecord::Associations::AssociationCollection.class_eval do
     scoped.weighted_average_relation(*args)
   end
 end
-ActiveRecord::Base.class_eval do
+::ActiveRecord::Base.class_eval do
   def self.weighted_average(*args) # :nodoc:
     scoped.weighted_average(*args)
   end
@@ -75,4 +77,4 @@ ActiveRecord::Base.class_eval do
   end
 end
 
-ActiveRecord::Relation.send :include, WeightedAverage
+::ActiveRecord::Relation.send :include, ::WeightedAverage
