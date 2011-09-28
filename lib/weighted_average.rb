@@ -48,7 +48,7 @@ module WeightedAverage
       [ quoted_table_name, connection.quote_column_name(data_column_name) ].join '.'
     end
 
-    relation = select("(SUM((#{data_column_names.join(' + ')}) #{"/ #{disaggregate_by_column_name} " if disaggregate_by_column_name}* #{weighted_by_column_name}) / SUM(#{weighted_by_column_name})) AS weighted_average")
+    relation = select("(SUM(1.0 * (#{data_column_names.join(' + ')}) #{"/ #{disaggregate_by_column_name} " if disaggregate_by_column_name}* #{weighted_by_column_name}) / SUM(#{weighted_by_column_name})) AS weighted_average")
     data_column_names.each do |data_column_name|
       relation = relation.where("#{data_column_name} IS NOT NULL")
     end
