@@ -232,6 +232,10 @@ end
 (1..10).each do |i|
   a = Segment.new
   a.payload = i
+  a.distance = i
+  a.load_factor = i
+  a.seats = i
+  a.bts_aircraft_type = i
   a.row_hash = SecureRandom.hex(10)
   a.save!
 end
@@ -245,6 +249,13 @@ class AirlineAircraftSeatClass < ActiveRecord::Base
   has_one :aircraft_class, :through => :aircraft
 end
 
+(1..10).each do |i|
+  a = AirlineAircraftSeatClass.new
+  a.aircraft_id = i
+  a.seats = i
+  a.pitch = i
+  a.save!
+end
 
 class Aircraft < ActiveRecord::Base
   has_many :segments, :foreign_key => 'bts_aircraft_type', :primary_key => 'bts_aircraft_type'
@@ -252,12 +263,34 @@ class Aircraft < ActiveRecord::Base
   has_many :airline_aircraft_seat_classes
 end
 
+(1..10).each do |i|
+  a = Aircraft.new
+  a.seats = i
+  a.m3 = i
+  a.bts_aircraft_type = i
+  a.aircraft_class_id = i
+  a.save!
+end
+
 class AircraftClass < ActiveRecord::Base
   has_many :aircraft
   has_many :airline_aircraft_seat_classes, :through => :aircraft
 end
 
+(1..10).each do |i|
+  a = AircraftClass.new
+  a.id = i
+  a.save!
+end
+
 class AircraftDeux < ActiveRecord::Base
   set_primary_key 'icao_code'
   has_many :segments, :primary_key => 'my_bts_aircraft_type_code', :foreign_key => 'bts_aircraft_type'
+end
+
+(1..10).each do |i|
+  a = AircraftDeux.new
+  a.icao_code = SecureRandom.hex(2)
+  a.m3 = i
+  a.save!
 end
