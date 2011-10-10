@@ -6,7 +6,7 @@ module WeightedAverage
   # Returns a number.
   def weighted_average(*args)
     weighted_average = connection.select_value(weighted_average_relation(*args).to_sql, 'weighted_average')
-    weighted_average.present? ? weighted_average.to_f : nil
+    weighted_average.nil? ? nil : weighted_average.to_f
   end
 
   # Returns the ARel relation for a weighted average query.
