@@ -236,6 +236,7 @@ end
   a.load_factor = i
   a.seats = i
   a.bts_aircraft_type = i
+  a.passengers = i
   a.row_hash = SecureRandom.hex(10)
   a.save!
 end

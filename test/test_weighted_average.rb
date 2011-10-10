@@ -63,7 +63,8 @@ describe WeightedAverage do
   # nothing but nils
   
   it "returns nil if the values to be weighted are all nil" do
-    must_be_nil(Segment.weighted_average(:mail, :weighted_by => :passengers))
+    Segment.weighted_average(:mail, :weighted_by => :passengers).must_be_nil
+    Segment.weighted_average(:seats, :weighted_by => :passengers).wont_be_nil
   end
   
   # multiple columns
