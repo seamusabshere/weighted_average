@@ -20,9 +20,9 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency 'activerecord', '~>3'
   s.add_runtime_dependency 'activesupport', '~>3'
-  s.add_runtime_dependency 'arel', '~>2'
+  s.add_runtime_dependency 'arel', '>= 2'
   
-  s.add_development_dependency 'cohort_scope', '>=0.0.2'
+  s.add_development_dependency 'cohort_scope', '>= 0.2.1'
   s.add_development_dependency 'minitest'
   s.add_development_dependency 'rake'
   s.add_development_dependency 'mysql'
