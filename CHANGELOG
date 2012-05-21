@@ -1,0 +1,5 @@
+1.1.0 / 2012-05-21
+
+* Bug fixes
+
+  * Don't rely on ActiveRecord::Relation#quoted_table_name; use ActiveRecord::Relation#table.name instead.
