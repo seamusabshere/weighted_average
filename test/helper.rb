@@ -1,7 +1,7 @@
 require 'bundler/setup'
 require 'minitest/spec'
 require 'minitest/autorun'
-require 'cohort_scope'
+require 'cohort_analysis'
 
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
@@ -223,8 +223,6 @@ end
 class Segment < ActiveRecord::Base
   set_primary_key :row_hash
   validates_presence_of :row_hash
-  extend CohortScope
-  self.minimum_cohort_size = 1
   belongs_to :aircraft, :foreign_key => 'bts_aircraft_type', :primary_key => 'bts_aircraft_type'
   has_one :aircraft_class, :through => :aircraft
 end
