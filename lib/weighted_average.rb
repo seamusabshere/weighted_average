@@ -22,11 +22,14 @@ module WeightedAverage
     # AirlineAircraftSeatClass
     association_class = association.klass if association
     
+    # `aircraft`
+    table_name = connection.quote_table_name table.name
+
     # `airline_aircraft_seat_classes`
     weighted_by_table_name = if association_class
       association_class.quoted_table_name
     else
-      quoted_table_name
+      table_name
     end
       
     # `airline_aircraft_seat_classes`.`weighting`
@@ -41,12 +44,12 @@ module WeightedAverage
     
     # `aircraft`.`passengers`
     disaggregate_by_column_name = if options[:disaggregate_by]
-      [ quoted_table_name, connection.quote_column_name(options[:disaggregate_by]) ].join '.'
+      [ table_name, connection.quote_column_name(options[:disaggregate_by]) ].join '.'
     end
 
     # [ `aircraft`.`foo`, `aircraft`.`baz` ]
     data_column_names = ::Array.wrap(data_column_names).map do |data_column_name|
-      [ quoted_table_name, connection.quote_column_name(data_column_name) ].join '.'
+      [ table_name, connection.quote_column_name(data_column_name) ].join '.'
     end
 
     relation = select("(SUM(1.0 * (#{data_column_names.join(' + ')}) #{"/ #{disaggregate_by_column_name} " if disaggregate_by_column_name}* #{weighted_by_column_name}) / SUM(#{weighted_by_column_name})) AS weighted_average")

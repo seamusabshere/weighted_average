@@ -191,6 +191,18 @@ describe WeightedAverage do
     )
   end
 
+  it "properly picks up table name" do
+    c = Segment.connection
+    c.execute %{
+      CREATE TEMPORARY TABLE moo LIKE #{Segment.quoted_table_name}
+    }
+    relation = ActiveRecord::Relation.new(Segment, Arel::Table.new(:moo))
+    should_have_same_sql(
+      "SELECT (SUM(1.0 * (moo.distance) * moo.passengers) / SUM(moo.passengers)) AS weighted_average FROM moo WHERE (moo.distance IS NOT NULL) AND (moo.passengers > 0)",
+      relation.weighted_average_relation('distance', :weighted_by => 'passengers')
+    )
+  end
+
   private
 
   def database_field_quote_char
