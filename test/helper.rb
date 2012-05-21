@@ -221,7 +221,7 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
 end
 
 class Segment < ActiveRecord::Base
-  set_primary_key :row_hash
+  self.primary_key = 'row_hash'
   validates_presence_of :row_hash
   belongs_to :aircraft, :foreign_key => 'bts_aircraft_type', :primary_key => 'bts_aircraft_type'
   has_one :aircraft_class, :through => :aircraft
@@ -283,7 +283,7 @@ end
 end
 
 class AircraftDeux < ActiveRecord::Base
-  set_primary_key 'icao_code'
+  self.primary_key = 'icao_code'
   has_many :segments, :primary_key => 'my_bts_aircraft_type_code', :foreign_key => 'bts_aircraft_type'
 end
 
