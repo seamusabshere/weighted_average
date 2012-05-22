@@ -191,16 +191,26 @@ describe WeightedAverage do
     )
   end
 
-  it "properly picks up table name" do
-    c = Segment.connection
-    c.execute %{
-      CREATE TEMPORARY TABLE moo LIKE #{Segment.quoted_table_name}
-    }
-    relation = ActiveRecord::Relation.new(Segment, Arel::Table.new(:moo))
-    should_have_same_sql(
-      "SELECT (SUM(1.0 * (moo.distance) * moo.passengers) / SUM(moo.passengers)) AS weighted_average FROM moo WHERE (moo.distance IS NOT NULL) AND (moo.passengers > 0)",
-      relation.weighted_average_relation('distance', :weighted_by => 'passengers')
-    )
+  describe "on Arel::Table" do
+    it "works on plain tables" do
+      c = Segment.connection
+      table_name = "plain_arel_table_#{rand(1e11).to_s}"
+      c.execute %{
+        CREATE TEMPORARY TABLE #{table_name} LIKE #{Segment.quoted_table_name}
+      }
+      table = Arel::Table.new(table_name)
+      should_have_same_sql(
+        "SELECT SUM(#{table_name}.passengers * #{table_name}.distance * 1.0) / SUM(#{table_name}.passengers) FROM #{table_name} WHERE #{table_name}.distance IS NOT NULL AND #{table_name}.passengers > 0",
+        table.weighted_average_relation('distance', :weighted_by => 'passengers')
+      )
+    end
+
+    it "takes complex args" do
+      should_have_same_sql(
+        "SELECT SUM(airline_aircraft_seat_classes.weighting * (airline_aircraft_seat_classes.seats + airline_aircraft_seat_classes.pitch) * 1.0) / SUM(airline_aircraft_seat_classes.weighting) FROM airline_aircraft_seat_classes WHERE airline_aircraft_seat_classes.seats IS NOT NULL AND airline_aircraft_seat_classes.pitch IS NOT NULL AND airline_aircraft_seat_classes.weighting > 0",
+        AirlineAircraftSeatClass.arel_table.weighted_average_relation(['seats', 'pitch'])
+      )
+    end
   end
 
   private
