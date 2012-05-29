@@ -1,12 +1,30 @@
 module WeightedAverage
   module ArelSelectManagerInstanceMethods
-    # Returns a number.
-    def weighted_average(*args)
-      weighted_average = @engine.connection.select_value(weighted_average_relation(*args).to_sql)
+    # Calculate the weighted average of column(s).
+    #
+    # @param [Symbol,Array<Symbol>] data_column_names One or more column names whose average should be calculated. Added together before being multiplied by the weighting if more than one.
+    # @param [Hash] options
+    #
+    # @option options [Symbol] :weighted_by The name of the weighting column if it's not :weighting (the default)
+    # @option options [Symbol] :disaggregate_by The name of a column to disaggregate by. Usually not necessary.
+    #
+    # @see WeightedAverage::ActiveRecordRelationInstanceMethods The ActiveRecord-specific version of this method, which knows about associations.
+    #
+    # @example Weighted average of load factor in flight stage data
+    #   Arel::Table.new(:flight_segments).weighted_average(:load_factor, :weighted_by => :passengers)
+    #
+    # @return [Float,nil]
+    def weighted_average(data_column_names, options = {})
+      weighted_average = @engine.connection.select_value(weighted_average_relation(data_column_names, options).to_sql)
       weighted_average.nil? ? nil : weighted_average.to_f
     end
 
-    # Returns the ARel relation for a weighted average query.
+    # In case you want to get the relation and/or the SQL of the calculation query before actually runnnig it.
+    #
+    # @example Get the SQL
+    #   Arel::Table.new(:flight_segments).weighted_average_relation(:load_factor, :weighted_by => :passengers).to_sql
+    #
+    # @return [Arel::SelectManager] A relation you can play around with.
     def weighted_average_relation(data_column_names, options = {})
       left = self.source.left
 

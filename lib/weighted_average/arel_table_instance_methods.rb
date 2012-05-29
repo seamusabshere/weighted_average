@@ -1,12 +1,17 @@
 module WeightedAverage
   module ArelTableInstanceMethods
+    # @see WeightedAverage::ArelSelectManagerInstanceMethods#weighted_average
+    #
+    # @return [Float,nil]
     def weighted_average(*args)
       from(self).weighted_average(*args)
     end
 
-    # Returns the ARel relation for a weighted average query.
-    def weighted_average_relation(data_column_names, options = {})
-      from(self).weighted_average_relation(data_column_names, options)
+    # @see WeightedAverage::ArelSelectManagerInstanceMethods#weighted_average_relation
+    #
+    # @return [Arel::SelectManager]
+    def weighted_average_relation(*args)
+      from(self).weighted_average_relation(*args)
     end
   end
 end

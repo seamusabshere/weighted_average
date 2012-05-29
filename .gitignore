@@ -21,3 +21,6 @@ pkg
 ## PROJECT::SPECIFIC
 test/test.log
 Gemfile.lock
+
+.yardoc
+doc/

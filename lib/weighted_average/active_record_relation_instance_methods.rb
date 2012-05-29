@@ -1,13 +1,35 @@
 module WeightedAverage
   module ActiveRecordRelationInstanceMethods
-    # Returns a number.
-    def weighted_average(*args)
-      weighted_average = connection.select_value weighted_average_relation(*args).to_sql
+    # Get the weighted average of column(s).
+    #
+    # In addition to the options available on WeightedAverage::ArelSelectManagerInstanceMethods#weighted_average, this ActiveRecord-specific method understands associations.
+    #
+    # @param [Symbol,Array<Symbol>] data_column_names One or more column names whose average should be calculated. Added together before being multiplied by the weighting if more than one.
+    # @param [Hash] options
+    #
+    # @option options [Symbol] :weighted_by The name of an association to weight against OR a column name just like in the pure ARel version.
+    # @option options [Array{Symbol,Symbol}] :weighted_by The name of an association and a weighting column inside that association table to weight against. Not available in the pure ARel version.
+    # @option options [Symbol] :disaggregate_by Same as its meaning in the pure ARel version.
+    #
+    # @example Get the average m3 of all aircraft, weighted by a column named :weighting in flight segments table. But wait... there is no column called :weighting! So see the next example.
+    #   Aircraft.weighted_average(:m3, :weighted_by => :segments)
+    #
+    # @example Get the average m3 of all aircraft, weighted by how many :passengers flew in a particular aircraft.
+    #   Aircraft.weighted_average(:m3, :weighted_by => [:segments, :passengers])
+    #
+    # @see WeightedAverage::ArelSelectManagerInstanceMethods#weighted_average The pure ARel version of this method, which doesn't know about associations
+    #
+    # @return [Float,nil]
+    def weighted_average(data_column_names, options = {})
+      weighted_average = connection.select_value weighted_average_relation(data_column_names, options).to_sql
       weighted_average.nil? ? nil : weighted_average.to_f
     end
 
-    # :hfc_emission_factor => lambda { fallback_type_years.weighted_average(:hfc_emission_factor, :weighted_by => [:type_fuel_years, :total_travel]) },
-    # Returns the ARel relation for a weighted average query.
+    # Same as WeightedAverage::ArelSelectManagerInstanceMethods#weighted_average, except it can interpret associations.
+    #
+    # @see WeightedAverage::ArelSelectManagerInstanceMethods#weighted_average_relation The pure ARel version of this method.
+    #
+    # @return [Arel::SelectManager]
     def weighted_average_relation(data_column_names, options = {})
       if weighted_by_option = options[:weighted_by]
         case weighted_by_option
