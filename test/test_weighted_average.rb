@@ -48,14 +48,14 @@ describe WeightedAverage do
 
   it "does default weighting" do
     should_have_same_sql(
-      "SELECT (SUM(1.0 * (airline_aircraft_seat_classes.seats) * airline_aircraft_seat_classes.weighting) / SUM(airline_aircraft_seat_classes.weighting)) AS weighted_average FROM airline_aircraft_seat_classes WHERE (airline_aircraft_seat_classes.seats IS NOT NULL) AND (airline_aircraft_seat_classes.weighting > 0)",
+      "SELECT SUM(airline_aircraft_seat_classes.weighting * airline_aircraft_seat_classes.seats * 1.0) / SUM(airline_aircraft_seat_classes.weighting) FROM airline_aircraft_seat_classes WHERE airline_aircraft_seat_classes.seats IS NOT NULL AND airline_aircraft_seat_classes.weighting > 0",
       AirlineAircraftSeatClass.weighted_average_relation('seats')
     )
   end
   
   it "does custom weighting" do
     should_have_same_sql(
-      "SELECT (SUM(1.0 * (segments.distance) * segments.passengers) / SUM(segments.passengers)) AS weighted_average FROM segments WHERE (segments.distance IS NOT NULL) AND (segments.passengers > 0)",
+      "SELECT SUM(segments.passengers * segments.distance * 1.0) / SUM(segments.passengers) FROM segments WHERE segments.distance IS NOT NULL AND segments.passengers > 0",
       Segment.weighted_average_relation('distance', :weighted_by => 'passengers')
     )
   end
@@ -71,7 +71,7 @@ describe WeightedAverage do
   
   it "adds multiple columns before averaging" do
     should_have_same_sql(
-      "SELECT (SUM(1.0 * (airline_aircraft_seat_classes.seats + airline_aircraft_seat_classes.pitch) * airline_aircraft_seat_classes.weighting) / SUM(airline_aircraft_seat_classes.weighting)) AS weighted_average FROM airline_aircraft_seat_classes WHERE (airline_aircraft_seat_classes.seats IS NOT NULL) AND (airline_aircraft_seat_classes.pitch IS NOT NULL) AND (airline_aircraft_seat_classes.weighting > 0)",
+      "SELECT SUM(airline_aircraft_seat_classes.weighting * (airline_aircraft_seat_classes.seats + airline_aircraft_seat_classes.pitch) * 1.0) / SUM(airline_aircraft_seat_classes.weighting) FROM airline_aircraft_seat_classes WHERE airline_aircraft_seat_classes.seats IS NOT NULL AND airline_aircraft_seat_classes.pitch IS NOT NULL AND airline_aircraft_seat_classes.weighting > 0",
       AirlineAircraftSeatClass.weighted_average_relation(['seats', 'pitch'])
     )
   end
@@ -80,10 +80,10 @@ describe WeightedAverage do
   
   # a subquery used in Aircraft.update_all_seats
   it "does default weighting with conditions" do 
-    conditions = 'aircraft_id = 1'
+    conditions = "aircraft_id = #{rand(1e11)}"
     
     should_have_same_sql(
-      "SELECT (SUM(1.0 * (airline_aircraft_seat_classes.seats) * airline_aircraft_seat_classes.weighting) / SUM(airline_aircraft_seat_classes.weighting)) AS weighted_average FROM airline_aircraft_seat_classes WHERE (#{conditions}) AND (airline_aircraft_seat_classes.seats IS NOT NULL) AND (airline_aircraft_seat_classes.weighting > 0)",
+      "SELECT SUM(airline_aircraft_seat_classes.weighting * airline_aircraft_seat_classes.seats * 1.0) / SUM(airline_aircraft_seat_classes.weighting) FROM airline_aircraft_seat_classes WHERE (#{conditions}) AND airline_aircraft_seat_classes.seats IS NOT NULL AND airline_aircraft_seat_classes.weighting > 0",
       AirlineAircraftSeatClass.where(conditions).weighted_average_relation('seats')
     )
   end
@@ -92,7 +92,7 @@ describe WeightedAverage do
   it "does custom weighting with conditions" do
     conditions = '456 = 456'
     should_have_same_sql(
-      "SELECT (SUM(1.0 * (segments.load_factor) * segments.passengers) / SUM(segments.passengers)) AS weighted_average FROM segments WHERE (#{conditions}) AND (segments.load_factor IS NOT NULL) AND (segments.passengers > 0)",
+      "SELECT SUM(segments.passengers * segments.load_factor * 1.0) / SUM(segments.passengers) FROM segments WHERE (456 = 456) AND segments.load_factor IS NOT NULL AND segments.passengers > 0",
       Segment.where(conditions).weighted_average_relation('load_factor', :weighted_by => 'passengers')
     )
   end
@@ -102,7 +102,7 @@ describe WeightedAverage do
   # fake! we would never calc seats this way
   it "does foreign default weighting" do
     should_have_same_sql(
-      "SELECT (SUM(1.0 * (aircraft.seats) * airline_aircraft_seat_classes.weighting) / SUM(airline_aircraft_seat_classes.weighting)) AS weighted_average FROM aircraft INNER JOIN airline_aircraft_seat_classes ON airline_aircraft_seat_classes.aircraft_id = aircraft.id WHERE (aircraft.seats IS NOT NULL) AND (airline_aircraft_seat_classes.weighting > 0)",
+      "SELECT SUM(airline_aircraft_seat_classes.weighting * aircraft.seats * 1.0) / SUM(airline_aircraft_seat_classes.weighting) FROM aircraft INNER JOIN airline_aircraft_seat_classes ON airline_aircraft_seat_classes.aircraft_id = aircraft.id WHERE aircraft.seats IS NOT NULL AND airline_aircraft_seat_classes.weighting > 0",
       Aircraft.weighted_average_relation('seats', :weighted_by => :airline_aircraft_seat_classes)
     )
   end
@@ -111,14 +111,14 @@ describe WeightedAverage do
   # a subquery used in Aircraft.update_all_m3s
   it "does foreign custom weighting" do
     should_have_same_sql(
-      "SELECT (SUM(1.0 * (aircraft.m3) * segments.passengers) / SUM(segments.passengers)) AS weighted_average FROM aircraft INNER JOIN segments ON segments.bts_aircraft_type = aircraft.bts_aircraft_type WHERE (aircraft.m3 IS NOT NULL) AND (segments.passengers > 0)",
+      "SELECT SUM(segments.passengers * aircraft.m3 * 1.0) / SUM(segments.passengers) FROM aircraft INNER JOIN segments ON segments.bts_aircraft_type = aircraft.bts_aircraft_type WHERE aircraft.m3 IS NOT NULL AND segments.passengers > 0",
       Aircraft.weighted_average_relation(:m3, :weighted_by => [:segments, :passengers])
     )
   end
   
   it "does foreign custom weighting with custom join keys" do
     should_have_same_sql(
-      "SELECT (SUM(1.0 * (aircraft_deux.m3) * segments.passengers) / SUM(segments.passengers)) AS weighted_average FROM aircraft_deux INNER JOIN segments ON segments.bts_aircraft_type = aircraft_deux.my_bts_aircraft_type_code WHERE (aircraft_deux.m3 IS NOT NULL) AND (segments.passengers > 0)",
+      "SELECT SUM(segments.passengers * aircraft_deux.m3 * 1.0) / SUM(segments.passengers) FROM aircraft_deux INNER JOIN segments ON segments.bts_aircraft_type = aircraft_deux.my_bts_aircraft_type_code WHERE aircraft_deux.m3 IS NOT NULL AND segments.passengers > 0",
       AircraftDeux.weighted_average_relation(:m3, :weighted_by => [:segments, :passengers])
     )
   end
@@ -128,7 +128,7 @@ describe WeightedAverage do
   it "does default weighting, scoped" do
     conditions = '456 = 456'
     should_have_same_sql(
-      "SELECT (SUM(1.0 * (airline_aircraft_seat_classes.seats) * airline_aircraft_seat_classes.weighting) / SUM(airline_aircraft_seat_classes.weighting)) AS weighted_average FROM airline_aircraft_seat_classes WHERE (#{conditions}) AND (airline_aircraft_seat_classes.seats IS NOT NULL) AND (airline_aircraft_seat_classes.weighting > 0)",
+      "SELECT SUM(airline_aircraft_seat_classes.weighting * airline_aircraft_seat_classes.seats * 1.0) / SUM(airline_aircraft_seat_classes.weighting) FROM airline_aircraft_seat_classes WHERE (#{conditions}) AND airline_aircraft_seat_classes.seats IS NOT NULL AND airline_aircraft_seat_classes.weighting > 0",
       AirlineAircraftSeatClass.scoped(:conditions => conditions).weighted_average_relation(:seats)
     )
   end
@@ -136,17 +136,17 @@ describe WeightedAverage do
   it "does custom weighting, scoped" do
     conditions = '999 = 999'
     should_have_same_sql(
-      "SELECT (SUM(1.0 * (segments.load_factor) * segments.passengers) / SUM(segments.passengers)) AS weighted_average FROM segments WHERE (#{conditions}) AND (segments.load_factor IS NOT NULL) AND (segments.passengers > 0)",
+      "SELECT SUM(segments.passengers * segments.load_factor * 1.0) / SUM(segments.passengers) FROM segments WHERE (#{conditions}) AND segments.load_factor IS NOT NULL AND segments.passengers > 0",
       Segment.scoped(:conditions => conditions).weighted_average_relation(:load_factor, :weighted_by => :passengers)
     )
   end
   
-  # scoped foreign weightings
+  # # scoped foreign weightings
   
   it "does foreign default weighting, scoped" do
     conditions = '454 != 999'
     should_have_same_sql(
-      "SELECT (SUM(1.0 * (aircraft.seats) * airline_aircraft_seat_classes.weighting) / SUM(airline_aircraft_seat_classes.weighting)) AS weighted_average FROM aircraft INNER JOIN airline_aircraft_seat_classes ON airline_aircraft_seat_classes.aircraft_id = aircraft.id WHERE (454 != 999) AND (aircraft.seats IS NOT NULL) AND (airline_aircraft_seat_classes.weighting > 0)",
+      "SELECT SUM(airline_aircraft_seat_classes.weighting * aircraft.seats * 1.0) / SUM(airline_aircraft_seat_classes.weighting) FROM aircraft INNER JOIN airline_aircraft_seat_classes ON airline_aircraft_seat_classes.aircraft_id = aircraft.id WHERE (#{conditions}) AND aircraft.seats IS NOT NULL AND airline_aircraft_seat_classes.weighting > 0",
       Aircraft.scoped(:conditions => conditions).weighted_average_relation(:seats, :weighted_by => :airline_aircraft_seat_classes)
     )
   end
@@ -154,21 +154,21 @@ describe WeightedAverage do
   it "does foreign custom weighting, scoped" do
     conditions = 'aircraft.m3 > 1'
     should_have_same_sql(
-      "SELECT (SUM(1.0 * (aircraft.m3) * segments.passengers) / SUM(segments.passengers)) AS weighted_average FROM aircraft INNER JOIN segments ON segments.bts_aircraft_type = aircraft.bts_aircraft_type WHERE (aircraft.m3 > 1) AND (aircraft.m3 IS NOT NULL) AND (segments.passengers > 0)",
+      "SELECT SUM(segments.passengers * aircraft.m3 * 1.0) / SUM(segments.passengers) FROM aircraft INNER JOIN segments ON segments.bts_aircraft_type = aircraft.bts_aircraft_type WHERE (#{conditions}) AND aircraft.m3 IS NOT NULL AND segments.passengers > 0",
       Aircraft.scoped(:conditions => conditions).weighted_average_relation(:m3, :weighted_by => [:segments, :passengers])
     )
   end
   
-  # disaggregation
+  # # disaggregation
   
   it "does custom weighting with disaggregation" do
     should_have_same_sql(
-      "SELECT (SUM(1.0 * (segments.load_factor) / segments.departures_performed * segments.passengers) / SUM(segments.passengers)) AS weighted_average FROM segments WHERE (segments.load_factor IS NOT NULL) AND (segments.passengers > 0) AND (segments.departures_performed > 0)",
+      "SELECT SUM(segments.passengers * segments.load_factor / segments.departures_performed * 1.0) / SUM(segments.passengers) FROM segments WHERE segments.load_factor IS NOT NULL AND segments.passengers > 0 AND segments.departures_performed > 0",
       Segment.weighted_average_relation(:load_factor, :weighted_by => :passengers, :disaggregate_by => :departures_performed)
     )
   end
   
-  # more complicated stuff
+  # # more complicated stuff
   
   it "construct weightings across has_many through associations (that can be used for updating all)" do
     aircraft_class = AircraftClass.arel_table
@@ -176,17 +176,17 @@ describe WeightedAverage do
     segment = Segment.arel_table
     
     should_have_same_sql(
-      "SELECT (SUM(1.0 * (segments.seats) * segments.passengers) / SUM(segments.passengers)) AS weighted_average FROM segments INNER JOIN aircraft ON aircraft.bts_aircraft_type = segments.bts_aircraft_type INNER JOIN aircraft_classes ON aircraft_classes.id = aircraft.aircraft_class_id WHERE aircraft.aircraft_class_id = aircraft_classes.id AND (segments.seats IS NOT NULL) AND (segments.passengers > 0)",
+      "SELECT SUM(segments.passengers * segments.seats * 1.0) / SUM(segments.passengers) FROM segments INNER JOIN aircraft ON aircraft.bts_aircraft_type = segments.bts_aircraft_type INNER JOIN aircraft_classes ON aircraft_classes.id = aircraft.aircraft_class_id WHERE segments.seats IS NOT NULL AND segments.passengers > 0 AND aircraft.aircraft_class_id = aircraft_classes.id",
       Segment.joins(:aircraft => :aircraft_class).weighted_average_relation(:seats, :weighted_by => :passengers).where(aircraft[:aircraft_class_id].eq(aircraft_class[:id]))
     )
   end
   
 
-  # cohorts (requires the cohort_scope gem)
+  # # cohorts (requires the cohort_analysis gem)
 
   it "does custom weighting, with a cohort" do
     should_have_same_sql(
-      "SELECT (SUM(1.0 * (segments.load_factor) * segments.passengers) / SUM(segments.passengers)) AS weighted_average FROM segments WHERE (segments.payload = 5) AND (segments.load_factor IS NOT NULL) AND (segments.passengers > 0)",
+      "SELECT SUM(segments.passengers * segments.load_factor * 1.0) / SUM(segments.passengers) FROM segments WHERE (segments.payload = 5) AND segments.load_factor IS NOT NULL AND segments.passengers > 0",
       Segment.cohort(:payload => 5).weighted_average_relation(:load_factor, :weighted_by => :passengers)
     )
   end

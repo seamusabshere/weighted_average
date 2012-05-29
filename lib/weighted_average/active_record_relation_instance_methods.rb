@@ -6,61 +6,34 @@ module WeightedAverage
       weighted_average.nil? ? nil : weighted_average.to_f
     end
 
+    # :hfc_emission_factor => lambda { fallback_type_years.weighted_average(:hfc_emission_factor, :weighted_by => [:type_fuel_years, :total_travel]) },
     # Returns the ARel relation for a weighted average query.
     def weighted_average_relation(data_column_names, options = {})
-      raise ::ArgumentError, "Only use array form if the weighting column in the foreign table is not called 'weighting'" if options[:weighted_by].is_a?(::Array) and options[:weighted_by].length != 2
-      raise ::ArgumentError, "No nil values in weighted_by, please" if ::Array.wrap(options[:weighted_by]).any?(&:nil?)
-    
-      # :airline_aircraft_seat_class
-      association = if options[:weighted_by].present?
-        options[:weighted_by].is_a?(::Array) ? reflect_on_association(options[:weighted_by].first.to_sym) : reflect_on_association(options[:weighted_by].to_sym)
-      end
-    
-      # AirlineAircraftSeatClass
-      association_class = association.klass if association
-      
-      # `aircraft`
-      table_name = connection.quote_table_name table.name
-
-      # `airline_aircraft_seat_classes`
-      weighted_by_table_name = if association_class
-        association_class.quoted_table_name
+      if weighted_by_option = options[:weighted_by]
+        case weighted_by_option
+        when Array
+          # :weighted_by specifies a custom column on an association table (least common)
+          unless association = reflect_on_association(weighted_by_option.first)
+            raise ArgumentError, "#{name} does not have association #{weighted_by_option.first.inspect}"
+          end
+          weighted_by_column = association.klass.arel_table[weighted_by_option.last]
+        when Symbol, String
+          if association = reflect_on_association(weighted_by_option)
+            # :weighted_by specifies an association table with a column named "weighting"
+            weighted_by_column = association.klass.arel_table[DEFAULT_WEIGHTED_BY_COLUMN_NAME]
+          else
+            # :weighted_by specifies a custom column on the same table
+            weighted_by_column = arel_table[weighted_by_option]
+          end
+        end
+        if association
+          joins(association.name).arel.weighted_average_relation data_column_names, options.merge(:weighted_by => weighted_by_column)
+        else
+          arel.weighted_average_relation data_column_names, options.merge(:weighted_by => weighted_by_column)
+        end
       else
-        table_name
+        arel.weighted_average_relation data_column_names, options
       end
-        
-      # `airline_aircraft_seat_classes`.`weighting`
-      weighted_by_column_name = if association_class and options[:weighted_by].is_a?(::Array)
-        options[:weighted_by].last.to_s
-      elsif !association_class and (options[:weighted_by].is_a?(::String) or options[:weighted_by].is_a?(::Symbol))
-        options[:weighted_by].to_s
-      else
-        'weighting'
-      end
-      weighted_by_column_name = [ weighted_by_table_name, connection.quote_column_name(weighted_by_column_name) ].join '.'
-      
-      # `aircraft`.`passengers`
-      disaggregate_by_column_name = if options[:disaggregate_by]
-        [ table_name, connection.quote_column_name(options[:disaggregate_by]) ].join '.'
-      end
-
-      # [ `aircraft`.`foo`, `aircraft`.`baz` ]
-      data_column_names = ::Array.wrap(data_column_names).map do |data_column_name|
-        [ table_name, connection.quote_column_name(data_column_name) ].join '.'
-      end
-
-      relation = select("(SUM(1.0 * (#{data_column_names.join(' + ')}) #{"/ #{disaggregate_by_column_name} " if disaggregate_by_column_name}* #{weighted_by_column_name}) / SUM(#{weighted_by_column_name})) AS weighted_average")
-      data_column_names.each do |data_column_name|
-        relation = relation.where("#{data_column_name} IS NOT NULL")
-      end
-
-      # avoid division by zero
-      relation = relation.where("#{weighted_by_column_name} > 0")
-      relation = relation.where("#{disaggregate_by_column_name} > 0") if disaggregate_by_column_name
-      
-      # FIXME this will break on through relationships, where it has to be :aircraft => :aircraft_class
-      relation = relation.joins(association.name) if association_class
-      relation
     end
 
   end
