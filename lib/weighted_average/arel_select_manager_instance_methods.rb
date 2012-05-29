@@ -35,10 +35,6 @@ module WeightedAverage
         self.projections = [Arel::Nodes::Division.new(Arel::Nodes::Sum.new(weighted_by_column * (data_columns.inject(:+)) * 1.0), Arel::Nodes::Sum.new([weighted_by_column]))]
       end
 
-      # data_columns.each do |data_column|
-      #   relation = relation.where data_column.not_eq(nil)
-      # end
-
       data_columns_not_eq_nil = data_columns.inject(nil) do |memo, data_column|
         if memo
           memo.and(data_column.not_eq(nil))
