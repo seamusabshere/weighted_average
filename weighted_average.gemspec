@@ -18,7 +18,6 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_runtime_dependency 'arel'
-  s.add_runtime_dependency 'activerecord', '~>3'
   s.add_runtime_dependency 'activesupport', '~>3'
   s.add_runtime_dependency 'arel', '>= 2'
   
@@ -27,6 +26,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rake'
   s.add_development_dependency 'mysql'
   s.add_development_dependency 'pg'
+  s.add_development_dependency 'activerecord', '~>3'
 end
 
 

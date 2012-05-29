@@ -1,6 +1,8 @@
 require 'bundler/setup'
 require 'minitest/spec'
 require 'minitest/autorun'
+
+require 'active_record'
 require 'cohort_analysis'
 
 require 'weighted_average'
