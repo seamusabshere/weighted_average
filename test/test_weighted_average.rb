@@ -196,7 +196,7 @@ describe WeightedAverage do
       c = Segment.connection
       table_name = "plain_arel_table_#{rand(1e11).to_s}"
       c.execute %{
-        CREATE TEMPORARY TABLE #{table_name} LIKE #{Segment.quoted_table_name}
+        CREATE TEMPORARY TABLE #{table_name} AS SELECT * FROM #{Segment.quoted_table_name} LIMIT 1
       }
       table = Arel::Table.new(table_name)
       should_have_same_sql(
