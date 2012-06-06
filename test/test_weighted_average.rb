@@ -234,6 +234,6 @@ describe WeightedAverage do
     # make sure the "best" SQL is valid
     ActiveRecord::Base.connection.execute(best)
     # compare everything to the known good
-    args.each { |arg| best.must_equal arg }
+    args.each { |arg| arg.must_equal best }
   end
 end
