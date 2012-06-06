@@ -26,6 +26,7 @@ module WeightedAverage
     #
     # @return [Arel::SelectManager] A relation you can play around with.
     def weighted_average_relation(data_column_names, options = {})
+      data_column_names = Array.wrap data_column_names
       left = self.source.left
 
       weighted_by_column = case options[:weighted_by]
@@ -43,14 +44,26 @@ module WeightedAverage
         left[options[:disaggregate_by]]
       end
 
-      data_columns = ::Array.wrap(data_column_names).map do |data_column_name|
+      data_columns = data_column_names.map do |data_column_name|
         left[data_column_name]
       end
 
+      data_columns_sum = data_columns.inject(nil) do |memo, data_column|
+        if memo
+          Arel::Nodes::Addition.new(memo, data_column)
+        else
+          data_column
+        end
+      end
+
+      if data_column_names.many?
+        data_columns_sum = Arel::Nodes::Grouping.new(data_columns_sum)
+      end
+
       if disaggregate_by_column
-        self.projections = [Arel::Nodes::Division.new(Arel::Nodes::Sum.new(weighted_by_column * (data_columns.inject(:+)) / disaggregate_by_column * 1.0), Arel::Nodes::Sum.new([weighted_by_column]))]
+        self.projections = [Arel::Nodes::Division.new(Arel::Nodes::Sum.new(weighted_by_column * data_columns_sum / disaggregate_by_column * 1.0), Arel::Nodes::Sum.new([weighted_by_column]))]
       else
-        self.projections = [Arel::Nodes::Division.new(Arel::Nodes::Sum.new(weighted_by_column * (data_columns.inject(:+)) * 1.0), Arel::Nodes::Sum.new([weighted_by_column]))]
+        self.projections = [Arel::Nodes::Division.new(Arel::Nodes::Sum.new(weighted_by_column * data_columns_sum * 1.0), Arel::Nodes::Sum.new([weighted_by_column]))]
       end
 
       data_columns_not_eq_nil = data_columns.inject(nil) do |memo, data_column|

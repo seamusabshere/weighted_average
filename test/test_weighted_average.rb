@@ -71,8 +71,8 @@ describe WeightedAverage do
   
   it "adds multiple columns before averaging" do
     should_have_same_sql(
-      "SELECT SUM(airline_aircraft_seat_classes.weighting * (airline_aircraft_seat_classes.seats + airline_aircraft_seat_classes.pitch) * 1.0) / SUM(airline_aircraft_seat_classes.weighting) FROM airline_aircraft_seat_classes WHERE airline_aircraft_seat_classes.seats IS NOT NULL AND airline_aircraft_seat_classes.pitch IS NOT NULL AND airline_aircraft_seat_classes.weighting > 0",
-      AirlineAircraftSeatClass.weighted_average_relation(['seats', 'pitch'])
+      "SELECT SUM(airline_aircraft_seat_classes.weighting * (airline_aircraft_seat_classes.seats + airline_aircraft_seat_classes.pitch + airline_aircraft_seat_classes.width) * 1.0) / SUM(airline_aircraft_seat_classes.weighting) FROM airline_aircraft_seat_classes WHERE airline_aircraft_seat_classes.seats IS NOT NULL AND airline_aircraft_seat_classes.pitch IS NOT NULL AND airline_aircraft_seat_classes.width IS NOT NULL AND airline_aircraft_seat_classes.weighting > 0",
+      AirlineAircraftSeatClass.weighted_average_relation(['seats', 'pitch', 'width'])
     )
   end
   
