@@ -26,6 +26,10 @@ module WeightedAverage
     #
     # @return [Arel::SelectManager] A relation you can play around with.
     def weighted_average_relation(data_column_names, options = {})
+      unless options[:safe] == true
+        return clone.weighted_average_relation(data_column_names, options.merge(:safe => true))
+      end
+
       data_column_names = Array.wrap data_column_names
       left = self.source.left
 

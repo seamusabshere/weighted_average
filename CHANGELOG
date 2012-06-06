@@ -1,3 +1,9 @@
+2.0.2 / 2012-06-06
+
+* Bug fixes
+
+  * Don't modify the Arel::SelectManager or ActiveRecord::Relation that #weighted_average is called on
+
 2.0.1 / 2012-06-06
 
 * Bug fixes

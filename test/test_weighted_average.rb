@@ -44,6 +44,50 @@ describe WeightedAverage do
   #   )
   # end
 
+  describe :weighted_average do
+    it "does not modify the Arel::SelectManager it is used on" do
+      s_t = Segment.arel_table
+      select_manager = s_t.where(s_t[:seats].eq(9))
+      original_constraints = select_manager.constraints
+      original_sql = select_manager.to_sql
+      select_manager.weighted_average(:seats, :weighted_by => :passengers)
+      select_manager.constraints.must_equal original_constraints
+      select_manager.to_sql.must_equal original_sql
+    end
+
+    it "does not modify the ActiveRecord::Relation it is used on" do
+      s_t = Segment.arel_table
+      relation = Segment.where(s_t[:seats].eq(9))
+      original_constraints = relation.constraints
+      original_sql = relation.to_sql
+      relation.weighted_average(:seats, :weighted_by => :passengers)
+      relation.constraints.must_equal original_constraints
+      relation.to_sql.must_equal original_sql
+    end
+  end
+
+  describe :weighted_average_relation do
+    it "does not modify the Arel::SelectManager it is used on" do
+      s_t = Segment.arel_table
+      select_manager = s_t.where(s_t[:seats].eq(9))
+      original_constraints = select_manager.constraints
+      original_sql = select_manager.to_sql
+      select_manager.weighted_average_relation(:seats, :weighted_by => :passengers)
+      select_manager.constraints.must_equal original_constraints
+      select_manager.to_sql.must_equal original_sql
+    end
+
+    it "does not modify the ActiveRecord::Relation it is used on" do
+      s_t = Segment.arel_table
+      relation = Segment.where(s_t[:seats].eq(9))
+      original_constraints = relation.constraints
+      original_sql = relation.to_sql
+      relation.weighted_average_relation(:seats, :weighted_by => :passengers)
+      relation.constraints.must_equal original_constraints
+      relation.to_sql.must_equal original_sql
+    end
+  end
+
   # plain
 
   it "does default weighting" do
