@@ -48,7 +48,7 @@ module WeightedAverage
         left[data_column_name]
       end
 
-      data_columns_sum = data_columns.inject(nil) do |memo, data_column|
+      data_columns_added_together = data_columns.inject(nil) do |memo, data_column|
         if memo
           Arel::Nodes::Addition.new(memo, data_column)
         else
@@ -57,13 +57,13 @@ module WeightedAverage
       end
 
       if data_column_names.many?
-        data_columns_sum = Arel::Nodes::Grouping.new(data_columns_sum)
+        data_columns_added_together = Arel::Nodes::Grouping.new(data_columns_added_together)
       end
 
       if disaggregate_by_column
-        self.projections = [Arel::Nodes::Division.new(Arel::Nodes::Sum.new(weighted_by_column * data_columns_sum / disaggregate_by_column * 1.0), Arel::Nodes::Sum.new([weighted_by_column]))]
+        self.projections = [Arel::Nodes::Division.new(Arel::Nodes::Sum.new(weighted_by_column * data_columns_added_together / disaggregate_by_column * 1.0), Arel::Nodes::Sum.new([weighted_by_column]))]
       else
-        self.projections = [Arel::Nodes::Division.new(Arel::Nodes::Sum.new(weighted_by_column * data_columns_sum * 1.0), Arel::Nodes::Sum.new([weighted_by_column]))]
+        self.projections = [Arel::Nodes::Division.new(Arel::Nodes::Sum.new(weighted_by_column * data_columns_added_together * 1.0), Arel::Nodes::Sum.new([weighted_by_column]))]
       end
 
       data_columns_not_eq_nil = data_columns.inject(nil) do |memo, data_column|
